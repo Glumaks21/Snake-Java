@@ -1,13 +1,9 @@
 package org.example;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.beans.*;
+import java.util.*;
+import java.util.concurrent.*;
+
 
 public class Snake {
     public enum Direction {
@@ -25,15 +21,17 @@ public class Snake {
     }
 
     private final PropertyChangeSupport support;
-    private final Deque<Cords> location;
+    private Deque<Cords> location;
     private Direction direction;
     private Cords tailTrace;
+    private boolean isAlive;
 
     public Snake(Cords startPosition) {
         support = new PropertyChangeSupport(this);
         location = new LinkedList<>();
         location.add(startPosition);
         direction = Direction.LEFT;
+        isAlive = true;
     }
 
     public Direction getDirection() {
@@ -41,16 +39,28 @@ public class Snake {
     }
 
     public void setDirection(Direction newDirection) {
+        if (!isAlive) {
+            throw new IllegalStateException("Already died");
+        }
+
         if (Math.abs(newDirection.degree - direction.degree) % 180  == 90) {
             direction = newDirection;
         }
     }
 
-    public Cords[] getLocation() {
-        return location.toArray(new Cords[0]);
+    public List<Cords> getLocation() {
+        return new ArrayList<>(location);
+    }
+
+    void setLocation(List<Cords> location) {
+        this.location = new LinkedList<>(location);
     }
 
     public void move() {
+        if (!isAlive) {
+            throw new IllegalStateException("Already died");
+        }
+
         Cords headCords = location.getFirst();
         switch (direction) {
             case RIGHT:
@@ -67,18 +77,25 @@ public class Snake {
                 break;
         }
 
-        tailTrace = location.removeLast();
-        location.addFirst(headCords);
-        support.firePropertyChange("location", null, headCords);
+        if (location.contains(headCords)) {
+            die();
+        } else {
+            List<Cords> locationBefore = getLocation();
+            location.addFirst(headCords);
+            tailTrace = location.removeLast();
+            List<Cords> locationAfter = getLocation();
+            support.firePropertyChange("location",
+                    locationBefore, locationAfter);
+        }
     }
 
     public boolean isAlive() {
-        return !location.isEmpty();
+        return isAlive;
     }
 
     public void grow() {
-        if (!isAlive()) {
-            throw new IllegalArgumentException("Already died");
+        if (!isAlive) {
+            throw new IllegalStateException("Already died");
         }
 
         if (tailTrace != null) {
@@ -90,16 +107,18 @@ public class Snake {
     }
 
     public void die() {
-        if (!isAlive()) {
-            throw new IllegalArgumentException("Already died");
+        if (!isAlive) {
+            throw new IllegalStateException("Already died");
         }
 
+        isAlive = false;
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
             if (location.isEmpty()) {
                 service.shutdown();
             }
 
+            System.out.println(location.size());
             location.removeLast();
             support.firePropertyChange("size",
                     location.size() + 1, location.size());

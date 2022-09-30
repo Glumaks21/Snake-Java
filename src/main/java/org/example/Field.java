@@ -1,9 +1,8 @@
 package org.example;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
+import java.beans.*;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class Field implements PropertyChangeListener {
@@ -33,7 +32,7 @@ public class Field implements PropertyChangeListener {
         return grid.length;
     }
 
-    public Snake getSnake() {
+    Snake getSnake() {
         return snake;
     }
 
@@ -46,7 +45,7 @@ public class Field implements PropertyChangeListener {
     }
 
     private void generateCherryCords() {
-        List<Cords> snakeLocation = Arrays.asList(snake.getLocation());
+        Collection<Cords> snakeLocation = snake.getLocation();
         Cords cords;
         do {
             int x = (int) (Math.random() * getGridLength());
@@ -60,11 +59,10 @@ public class Field implements PropertyChangeListener {
     private void mark() {
         Arrays.stream(grid).
                 forEach(line -> Arrays.fill(line, GridCell.EMPTY));
-        Arrays.stream(snake.getLocation()).
+        System.out.println("Location: " + snake.getLocation());
+        snake.getLocation().
                 forEach(cords -> grid[cords.getY()][cords.getX()] = GridCell.SNAKE);
-        if (cherry != null) {
-            grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
-        }
+        grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
 
         support.firePropertyChange("grid", null, null);
     }
@@ -73,12 +71,15 @@ public class Field implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "location":
-                Cords newHeadCords = (Cords) evt.getNewValue();
+                List<Cords> newLocations = (List<Cords>) evt.getNewValue();
+                List<Cords> oldLocations = (List<Cords>) evt.getOldValue();
 
-                if (cherry.equals(newHeadCords)) {
+                Cords headCords = newLocations.get(0);
+                if (cherry.equals(headCords)) {
                     snake.grow();
                     generateCherryCords();
-                } else if (!isCordsBelong(newHeadCords)) {
+                } else if (!isCordsBelong(headCords)) {
+                    snake.setLocation(oldLocations);
                     snake.die();
                 }
 
