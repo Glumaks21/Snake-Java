@@ -2,7 +2,9 @@ package org.example;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
+import java.util.List;
 
 public class Field implements PropertyChangeListener {
     public enum GridCell {
@@ -10,63 +12,79 @@ public class Field implements PropertyChangeListener {
     }
     private static final int GRID_LENGTH = 13;
 
+    private final PropertyChangeSupport support;
+
     private final GridCell[][] grid;
     private final Snake snake;
     private Cords cherry;
 
     public Field() {
-        grid = new GridCell[GRID_LENGTH][GRID_LENGTH];
-        Arrays.stream(grid).
-                forEach((line) -> Arrays.fill(line, GridCell.EMPTY));
+        support = new PropertyChangeSupport(this);
 
+        grid = new GridCell[GRID_LENGTH][GRID_LENGTH];
         Cords snakeHeadCords = new Cords(getGridLength() / 2, getGridLength() / 2);
         snake = new Snake(snakeHeadCords);
         snake.addPropertyChangeListener(this);
-        Arrays.stream(snake.getLocation()).
-                forEach(cords -> grid[cords.getY()][cords.getX()] = GridCell.SNAKE);
-
         generateCherryCords();
-        grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
-    }
-
-    public Snake getSnake() {
-        return snake;
+        mark();
     }
 
     public int getGridLength() {
         return grid.length;
     }
 
-    private void generateCherryCords() {
-        int x, y;
-        do {
-            x = (int) (Math.random() * getGridLength());
-            y = (int) (Math.random() * getGridLength());
-        } while (grid[y][x] != GridCell.EMPTY);
+    public Snake getSnake() {
+        return snake;
+    }
 
-        cherry = new Cords(x, y);
+    public GridCell getCellStateAt(Cords cords) {
+        if (!isCordsBelong(cords)) {
+            throw new IllegalArgumentException();
+        }
+
+        return grid[cords.getY()][cords.getX()];
+    }
+
+    private void generateCherryCords() {
+        List<Cords> snakeLocation = Arrays.asList(snake.getLocation());
+        Cords cords;
+        do {
+            int x = (int) (Math.random() * getGridLength());
+            int y = (int) (Math.random() * getGridLength());
+            cords = new Cords(x, y);
+        } while (snakeLocation.contains(cords));
+
+        cherry = cords;
     }
 
     private void mark() {
         Arrays.stream(grid).
-                forEach((line) -> Arrays.fill(line, GridCell.EMPTY));
+                forEach(line -> Arrays.fill(line, GridCell.EMPTY));
         Arrays.stream(snake.getLocation()).
                 forEach(cords -> grid[cords.getY()][cords.getX()] = GridCell.SNAKE);
-        grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
+        if (cherry != null) {
+            grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
+        }
+
+        support.firePropertyChange("grid", null, null);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
-            case "location" :
+            case "location":
                 Cords newHeadCords = (Cords) evt.getNewValue();
 
                 if (cherry.equals(newHeadCords)) {
                     snake.grow();
-                    grid[newHeadCords.getY()][newHeadCords.getX()] = GridCell.SNAKE;
                     generateCherryCords();
+                } else if (!isCordsBelong(newHeadCords)) {
+                    snake.die();
                 }
 
+                mark();
+                break;
+            case "size":
                 mark();
                 break;
         }
@@ -74,7 +92,7 @@ public class Field implements PropertyChangeListener {
 
     @Override
     public String toString() {
-        StringBuffer strb = new StringBuffer();
+        StringBuilder strb = new StringBuilder();
         for (int y = 0; y < getGridLength(); y++) {
             for (int x = 0; x < getGridLength(); x++) {
                 switch (grid[y][x]) {
@@ -92,5 +110,19 @@ public class Field implements PropertyChangeListener {
             strb.append("\n");
         }
         return strb.toString();
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        support.addPropertyChangeListener(listener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+        support.removePropertyChangeListener(listener);
+    }
+
+    private boolean isCordsBelong(Cords cords) {
+        return cords != null &&
+                cords.getX() >= 0 && cords.getX() < getGridLength() &&
+                cords.getY() >= 0 && cords.getY() < getGridLength();
     }
 }
