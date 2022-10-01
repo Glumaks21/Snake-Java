@@ -14,6 +14,7 @@ public class ScorePanel extends JPanel implements PropertyChangeListener {
 
     public ScorePanel(GameSession gameSession) {
         Objects.requireNonNull(gameSession, "game session is null");
+
         this.gameSession = gameSession;
         gameSession.addPropertyChangeListener(this);
 

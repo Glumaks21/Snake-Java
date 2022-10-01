@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Objects;
 
 public class Field implements PropertyChangeListener {
-    public enum GridCell {
+    public enum CellState {
         SNAKE, CHERRY, EMPTY;
     }
     private static final int GRID_LENGTH = 13;
 
     private final PropertyChangeSupport support;
 
-    private final GridCell[][] grid;
+    private final CellState[][] grid;
     private final Snake snake;
     private Cords cherry;
 
@@ -22,27 +22,37 @@ public class Field implements PropertyChangeListener {
         Objects.requireNonNull(snake, "snake is null");
 
         support = new PropertyChangeSupport(this);
-        grid = new GridCell[GRID_LENGTH][GRID_LENGTH];
+        grid = new CellState[GRID_LENGTH][GRID_LENGTH];
+        Arrays.stream(grid).
+                forEach(line -> Arrays.fill(line, CellState.EMPTY));
+
         this.snake = snake;
         snake.addPropertyChangeListener(this);
+        snake.getLocation().
+                forEach(cords -> setCellStateAt(CellState.SNAKE, cords));
+
         generateCherryCords();
-        mark();
+        setCellStateAt(CellState.CHERRY, cherry);
     }
 
     public int getGridLength() {
         return grid.length;
     }
 
-    Snake getSnake() {
-        return snake;
-    }
-
-    public GridCell getCellStateAt(Cords cords) {
+    public CellState getCellStateAt(Cords cords) {
         if (!isCordsBelong(cords)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Cords are not belong");
         }
 
         return grid[cords.getY()][cords.getX()];
+    }
+
+    private void setCellStateAt(CellState state, Cords cords) {
+        if (!isCordsBelong(cords)) {
+            throw new IllegalArgumentException("Cords are not belong");
+        }
+
+        grid[cords.getY()][cords.getX()] = state;
     }
 
     private void generateCherryCords() {
@@ -57,16 +67,6 @@ public class Field implements PropertyChangeListener {
         cherry = cords;
     }
 
-    private void mark() {
-        Arrays.stream(grid).
-                forEach(line -> Arrays.fill(line, GridCell.EMPTY));
-        snake.getLocation().
-                forEach(cords -> grid[cords.getY()][cords.getX()] = GridCell.SNAKE);
-        grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
-
-        support.firePropertyChange("grid", null, null);
-    }
-
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
@@ -74,19 +74,36 @@ public class Field implements PropertyChangeListener {
                 List<Cords> newLocations = (List<Cords>) evt.getNewValue();
                 List<Cords> oldLocations = (List<Cords>) evt.getOldValue();
 
-                Cords headCords = newLocations.get(0);
-                if (cherry.equals(headCords)) {
-                    snake.grow();
-                    generateCherryCords();
-                } else if (!isCordsBelong(headCords)) {
-                    snake.setHeadCords(oldLocations);
+                Cords newHeadCords = newLocations.get(0);
+                if (!isCordsBelong(newHeadCords)) {
+                    snake.setLocation(oldLocations);
                     snake.die();
+                } else {
+                    setCellStateAt(CellState.SNAKE, newHeadCords);
+
+                    if (cherry.equals(newHeadCords)) {
+                        snake.grow();
+                        generateCherryCords();
+                        setCellStateAt(CellState.CHERRY, cherry);
+                    } else {
+                        Cords oldTailCords = oldLocations.get(oldLocations.size() - 1);
+                        setCellStateAt(CellState.EMPTY, oldTailCords);
+                    }
                 }
 
-                mark();
+                support.firePropertyChange("grid", null, null);
                 break;
             case "size":
-                mark();
+                Cords newTailCords = (Cords) evt.getNewValue();
+                Cords oldTailCords = (Cords) evt.getOldValue();
+
+                if (newTailCords == null) {
+                    setCellStateAt(CellState.EMPTY, oldTailCords);
+                } else if (oldTailCords == null) {
+                    setCellStateAt(CellState.SNAKE, newTailCords);
+                }
+
+                support.firePropertyChange("grid", null, null);
                 break;
         }
     }

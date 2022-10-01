@@ -2,7 +2,6 @@ package org.example.gui;
 
 import org.example.logic.Cords;
 import org.example.logic.Field;
-
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
@@ -31,28 +30,28 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals("grid")) {
-            for (int y = 0; y < field.getGridLength(); y++) {
-                for (int x = 0; x < field.getGridLength(); x++) {
-                    Field.GridCell newState = field.getCellStateAt(new Cords(x, y));
-                    grid[y][x].setState(newState);
+            new Thread(() -> {
+                for (int y = 0; y < field.getGridLength(); y++) {
+                    for (int x = 0; x < field.getGridLength(); x++) {
+                        Field.CellState newState = field.getCellStateAt(new Cords(x, y));
+                        grid[y][x].setState(newState);
+                    }
                 }
-            }
+            }).start();
         }
     }
 
-    public static class FieldCellPanel extends JPanel {
-        private final JLabel label;
-        private Field.GridCell state;
+    private class FieldCellPanel extends JPanel {
+        private Field.CellState state;
 
         public FieldCellPanel() {
-            setBackground(Color.GREEN);
-            setPreferredSize(new Dimension(50, 50));
-            label = new JLabel();
-            label.setFont(new Font(Font.DIALOG, Font.BOLD, 40));
-            add(label);
+            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+            int min = (int) (Math.min(dimension.width, dimension.height) * 0.6);
+            dimension = new Dimension(min / grid.length, min / grid.length);
+            setPreferredSize(dimension);
         }
 
-        public void setState(Field.GridCell newState) {
+        public void setState(Field.CellState newState) {
             if (state != newState) {
                 state = newState;
                 updateView();
@@ -62,13 +61,13 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
         private void updateView() {
             switch (state) {
                 case EMPTY:
-                    label.setText(" . ");
+                    setBackground(Color.BLACK);
                     break;
                 case CHERRY:
-                    label.setText(" * ");
+                    setBackground(Color.RED);
                     break;
                 case SNAKE:
-                    label.setText(" @ ");
+                    setBackground(Color.GREEN);
                     break;
             }
         }

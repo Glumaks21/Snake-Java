@@ -21,6 +21,7 @@ public class Snake {
     }
 
     private final PropertyChangeSupport support;
+
     private Deque<Cords> location;
     private Direction direction;
     private Cords tailTrace;
@@ -46,7 +47,7 @@ public class Snake {
         return new ArrayList<>(location);
     }
 
-    void setHeadCords(List<Cords> location) {
+    void setLocation(List<Cords> location) {
         this.location = new LinkedList<>(location);
     }
 
@@ -84,22 +85,23 @@ public class Snake {
             location.addLast(tailTrace);
             tailTrace = null;
             support.firePropertyChange("size",
-                    location.size() - 1, location.size());
+                    null, location.peekLast());
         }
     }
 
     public void die() {
         support.firePropertyChange("alive", true, false);
+
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
             if (location.isEmpty()) {
                 service.shutdown();
             }
 
-            location.removeLast();
+            Cords oldTailLocation = location.removeLast();
             support.firePropertyChange("size",
-                    location.size() + 1, location.size());
-        }, 500, 300, TimeUnit.MILLISECONDS);
+                    oldTailLocation, null);
+        }, 1, 200, TimeUnit.MILLISECONDS);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

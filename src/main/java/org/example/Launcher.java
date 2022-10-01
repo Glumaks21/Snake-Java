@@ -24,7 +24,6 @@ public class Launcher {
         frame.addKeyListener(new GameSessionController(gameSession));
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setResizable(false);
         frame.setVisible(true);
