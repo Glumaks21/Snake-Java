@@ -1,4 +1,4 @@
-package org.example;
+package org.example.controllers;
 
 import org.example.logic.GameSession;
 import java.awt.event.KeyAdapter;

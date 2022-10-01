@@ -10,7 +10,7 @@ public class Field implements PropertyChangeListener {
     public enum CellState {
         SNAKE, CHERRY, EMPTY;
     }
-    private static final int GRID_LENGTH = 13;
+    private static final int GRID_LENGTH = 15;
 
     private final PropertyChangeSupport support;
 

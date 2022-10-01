@@ -41,14 +41,11 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
         }
     }
 
-    private class FieldCellPanel extends JPanel {
+    private static class FieldCellPanel extends JPanel {
         private Field.CellState state;
 
         public FieldCellPanel() {
-            Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-            int min = (int) (Math.min(dimension.width, dimension.height) * 0.6);
-            dimension = new Dimension(min / grid.length, min / grid.length);
-            setPreferredSize(dimension);
+            setPreferredSize(new Dimension(50, 50));
         }
 
         public void setState(Field.CellState newState) {

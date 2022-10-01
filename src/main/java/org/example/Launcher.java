@@ -1,6 +1,9 @@
 package org.example;
 
+import org.example.controllers.GameSessionController;
+import org.example.controllers.SnakeController;
 import org.example.gui.FieldPanel;
+import org.example.gui.GameFrame;
 import org.example.gui.ScorePanel;
 import org.example.logic.Field;
 import org.example.logic.GameSession;
@@ -14,20 +17,12 @@ public class Launcher {
         Field field = new Field(snake);
         GameSession gameSession = new GameSession(field, snake);
 
-        JFrame frame = new JFrame();
-        ScorePanel scorePanel = new ScorePanel(gameSession);
-        FieldPanel fieldPanel = new FieldPanel(field);
-        frame.getContentPane().add(BorderLayout.NORTH, scorePanel);
-        frame.getContentPane().add(BorderLayout.CENTER, fieldPanel);
+        JFrame frame = new GameFrame(gameSession, field);
 
-        frame.addKeyListener(new SnakeController(snake));
+        frame.addKeyListener(new SnakeController(snake, gameSession));
         frame.addKeyListener(new GameSessionController(gameSession));
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setResizable(false);
         frame.setVisible(true);
-
         gameSession.start();
     }
 }

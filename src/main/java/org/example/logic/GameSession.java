@@ -28,8 +28,13 @@ public class GameSession implements PropertyChangeListener {
         snake.addPropertyChangeListener(this);
     }
 
+    public State getState() {
+        return state;
+    }
+
     public void start() {
         state = State.RUNNING;
+        support.firePropertyChange("state", null, State.RUNNING);
 
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
@@ -44,8 +49,8 @@ public class GameSession implements PropertyChangeListener {
     public void pause() {
         if (state == State.RUNNING) {
             state = State.PAUSED;
+            support.firePropertyChange("state", null, State.PAUSED);
         } else if (state == State.PAUSED) {
-            state = State.RUNNING;
             start();
         }
     }
@@ -62,6 +67,7 @@ public class GameSession implements PropertyChangeListener {
             case "alive":
                 if (!(Boolean) evt.getNewValue()) {
                     state = State.FINISHED;
+                    support.firePropertyChange("state", null, State.FINISHED);
                 }
                 break;
         }
