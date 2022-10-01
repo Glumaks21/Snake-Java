@@ -1,15 +1,12 @@
-package org.example;
+package org.example.gui;
+
+import org.example.logic.Cords;
+import org.example.logic.Field;
 
 import javax.swing.*;
 import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class FieldPanel extends JPanel implements PropertyChangeListener {
     private final FieldCellPanel[][] grid;
@@ -75,5 +72,4 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
                     break;
             }
         }
-    }
-}
+    }}

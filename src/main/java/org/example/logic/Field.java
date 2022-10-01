@@ -1,9 +1,10 @@
-package org.example;
+package org.example.logic;
 
 import java.beans.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class Field implements PropertyChangeListener {
     public enum GridCell {
@@ -17,12 +18,12 @@ public class Field implements PropertyChangeListener {
     private final Snake snake;
     private Cords cherry;
 
-    public Field() {
-        support = new PropertyChangeSupport(this);
+    public Field(Snake snake) {
+        Objects.requireNonNull(snake, "snake is null");
 
+        support = new PropertyChangeSupport(this);
         grid = new GridCell[GRID_LENGTH][GRID_LENGTH];
-        Cords snakeHeadCords = new Cords(getGridLength() / 2, getGridLength() / 2);
-        snake = new Snake(snakeHeadCords);
+        this.snake = snake;
         snake.addPropertyChangeListener(this);
         generateCherryCords();
         mark();
@@ -59,7 +60,6 @@ public class Field implements PropertyChangeListener {
     private void mark() {
         Arrays.stream(grid).
                 forEach(line -> Arrays.fill(line, GridCell.EMPTY));
-        System.out.println("Location: " + snake.getLocation());
         snake.getLocation().
                 forEach(cords -> grid[cords.getY()][cords.getX()] = GridCell.SNAKE);
         grid[cherry.getY()][cherry.getX()] = GridCell.CHERRY;
@@ -79,7 +79,7 @@ public class Field implements PropertyChangeListener {
                     snake.grow();
                     generateCherryCords();
                 } else if (!isCordsBelong(headCords)) {
-                    snake.setLocation(oldLocations);
+                    snake.setHeadCords(oldLocations);
                     snake.die();
                 }
 

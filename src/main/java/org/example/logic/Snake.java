@@ -1,4 +1,4 @@
-package org.example;
+package org.example.logic;
 
 import java.beans.*;
 import java.util.*;
@@ -24,14 +24,12 @@ public class Snake {
     private Deque<Cords> location;
     private Direction direction;
     private Cords tailTrace;
-    private boolean isAlive;
 
-    public Snake(Cords startPosition) {
+    public Snake() {
         support = new PropertyChangeSupport(this);
         location = new LinkedList<>();
-        location.add(startPosition);
-        direction = Direction.LEFT;
-        isAlive = true;
+        location.add(new Cords(0, 0));
+        direction = Direction.RIGHT;
     }
 
     public Direction getDirection() {
@@ -39,11 +37,7 @@ public class Snake {
     }
 
     public void setDirection(Direction newDirection) {
-        if (!isAlive) {
-            throw new IllegalStateException("Already died");
-        }
-
-        if (Math.abs(newDirection.degree - direction.degree) % 180  == 90) {
+        if (Math.abs(newDirection.getDegree() - direction.getDegree()) % 180  == 90) {
             direction = newDirection;
         }
     }
@@ -52,15 +46,11 @@ public class Snake {
         return new ArrayList<>(location);
     }
 
-    void setLocation(List<Cords> location) {
+    void setHeadCords(List<Cords> location) {
         this.location = new LinkedList<>(location);
     }
 
     public void move() {
-        if (!isAlive) {
-            throw new IllegalStateException("Already died");
-        }
-
         Cords headCords = location.getFirst();
         switch (direction) {
             case RIGHT:
@@ -89,15 +79,7 @@ public class Snake {
         }
     }
 
-    public boolean isAlive() {
-        return isAlive;
-    }
-
     public void grow() {
-        if (!isAlive) {
-            throw new IllegalStateException("Already died");
-        }
-
         if (tailTrace != null) {
             location.addLast(tailTrace);
             tailTrace = null;
@@ -107,18 +89,13 @@ public class Snake {
     }
 
     public void die() {
-        if (!isAlive) {
-            throw new IllegalStateException("Already died");
-        }
-
-        isAlive = false;
+        support.firePropertyChange("alive", true, false);
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
             if (location.isEmpty()) {
                 service.shutdown();
             }
 
-            System.out.println(location.size());
             location.removeLast();
             support.firePropertyChange("size",
                     location.size() + 1, location.size());

@@ -1,16 +1,16 @@
 package org.example;
 
+import org.example.logic.Snake;
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.Objects;
 
 public class SnakeController extends KeyAdapter {
-    private Snake snake;
+    private final Snake snake;
 
     public SnakeController(Snake snake) {
-        if (snake == null) {
-            throw new IllegalArgumentException("Null argument");
-        }
-
+        Objects.requireNonNull(snake, "snake is null");
         this.snake = snake;
     }
 

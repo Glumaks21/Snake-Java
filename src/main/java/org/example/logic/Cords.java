@@ -1,4 +1,4 @@
-package org.example;
+package org.example.logic;
 
 public class Cords {
     private final int x;
