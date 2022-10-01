@@ -21,6 +21,7 @@ public class Launcher {
         frame.getContentPane().add(BorderLayout.CENTER, fieldPanel);
 
         frame.addKeyListener(new SnakeController(snake));
+        frame.addKeyListener(new GameSessionController(gameSession));
 
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationRelativeTo(null);

@@ -42,23 +42,33 @@ public class GameSession implements PropertyChangeListener {
     }
 
     public void pause() {
-        state = State.PAUSED;
+        if (state == State.RUNNING) {
+            state = State.PAUSED;
+        } else if (state == State.PAUSED) {
+            state = State.RUNNING;
+            start();
+        }
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "size":
-                Integer newSize = (Integer) evt.getNewValue();
-                Integer oldSize = (Integer) evt.getOldValue();
+                if (state == State.RUNNING) {
+                    Integer newSize = (Integer) evt.getNewValue();
+                    Integer oldSize = (Integer) evt.getOldValue();
 
-                if (newSize > oldSize) {
-                    score = newSize - 1;
-                    support.firePropertyChange("score", null, score);
+                    if (newSize > oldSize) {
+                        score = newSize - 1;
+                        support.firePropertyChange("score", null, score);
+                    }
                 }
                 break;
             case "alive":
-
+                Boolean newSnakeState = (Boolean) evt.getNewValue();
+                if (!newSnakeState) {
+                    state = State.FINISHED;
+                }
                 break;
         }
     }
