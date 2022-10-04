@@ -13,17 +13,15 @@ public class GameSession implements PropertyChangeListener {
         RUNNING, PAUSED, FINISHED;
     }
     private final PropertyChangeSupport support;
-    private final Field field;
     private final Snake snake;
     private int score;
     private State state;
 
-    public GameSession(Field field, Snake snake) {
-        Objects.requireNonNull(field, "field is null");
+    public GameSession(Snake snake) {
         Objects.requireNonNull(snake, "snake is null");
 
         support = new PropertyChangeSupport(this);
-        this.field = field;
+
         this.snake = snake;
         snake.addPropertyChangeListener(this);
     }
@@ -33,6 +31,10 @@ public class GameSession implements PropertyChangeListener {
     }
 
     public void start() {
+        if (state == State.FINISHED) {
+            throw new IllegalStateException("Already finished");
+        }
+
         state = State.RUNNING;
         support.firePropertyChange("state", null, State.RUNNING);
 
@@ -43,7 +45,7 @@ public class GameSession implements PropertyChangeListener {
             }
 
             snake.move();
-        }, 600, 300, TimeUnit.MILLISECONDS);
+        }, 1000, 300, TimeUnit.MILLISECONDS);
     }
 
     public void pause() {

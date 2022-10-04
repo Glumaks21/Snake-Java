@@ -53,6 +53,7 @@ public class Field implements PropertyChangeListener {
         }
 
         grid[cords.getY()][cords.getX()] = state;
+        support.firePropertyChange("cords_state", null, cords);
     }
 
     private void generateCherryCords() {
@@ -90,8 +91,6 @@ public class Field implements PropertyChangeListener {
                         setCellStateAt(CellState.EMPTY, oldTailCords);
                     }
                 }
-
-                support.firePropertyChange("grid", null, null);
                 break;
             case "size":
                 Cords newTailCords = (Cords) evt.getNewValue();
@@ -103,7 +102,6 @@ public class Field implements PropertyChangeListener {
                     setCellStateAt(CellState.SNAKE, newTailCords);
                 }
 
-                support.firePropertyChange("grid", null, null);
                 break;
         }
     }

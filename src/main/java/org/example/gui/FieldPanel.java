@@ -7,6 +7,7 @@ import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+
 public class FieldPanel extends JPanel implements PropertyChangeListener {
     private final FieldCellPanel[][] grid;
     private final Field field;
@@ -29,15 +30,10 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals("grid")) {
-            new Thread(() -> {
-                for (int y = 0; y < field.getGridLength(); y++) {
-                    for (int x = 0; x < field.getGridLength(); x++) {
-                        Field.CellState newState = field.getCellStateAt(new Cords(x, y));
-                        grid[y][x].setState(newState);
-                    }
-                }
-            }).start();
+        if (evt.getPropertyName().equals("cords_state")) {
+            Cords cords = (Cords) evt.getNewValue();
+            Field.CellState newState = field.getCellStateAt(cords);
+            grid[cords.getY()][cords.getX()].setState(newState);
         }
     }
 

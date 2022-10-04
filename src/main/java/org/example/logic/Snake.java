@@ -101,7 +101,7 @@ public class Snake {
             Cords oldTailLocation = location.removeLast();
             support.firePropertyChange("size",
                     oldTailLocation, null);
-        }, 1, 200, TimeUnit.MILLISECONDS);
+        }, 600, 200, TimeUnit.MILLISECONDS);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

@@ -15,8 +15,13 @@ public class GameSessionController extends KeyAdapter {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            gameSession.pause();
+        switch (e.getKeyCode()) {
+            case  KeyEvent.VK_SPACE:
+                gameSession.pause();
+                break;
+            case KeyEvent.VK_ESCAPE:
+                gameSession.start();
+                break;
         }
     }
 }

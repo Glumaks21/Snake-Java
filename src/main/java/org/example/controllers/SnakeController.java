@@ -2,7 +2,6 @@ package org.example.controllers;
 
 import org.example.logic.GameSession;
 import org.example.logic.Snake;
-
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.Objects;
