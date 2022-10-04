@@ -8,7 +8,7 @@ import java.util.Objects;
 
 public class Field implements PropertyChangeListener {
     public enum CellState {
-        SNAKE, CHERRY, EMPTY;
+        SNAKE_HEAD, SNAKE_BODY, CHERRY, EMPTY;
     }
     private static final int GRID_LENGTH = 15;
 
@@ -28,8 +28,11 @@ public class Field implements PropertyChangeListener {
 
         this.snake = snake;
         snake.addPropertyChangeListener(this);
-        snake.getLocation().
-                forEach(cords -> setCellStateAt(CellState.SNAKE, cords));
+        Cords[] snakeLocation = snake.getLocation();
+        setCellStateAt(CellState.SNAKE_HEAD, snakeLocation[0]);
+        for (int i = 1; i < snakeLocation.length; i++) {
+            setCellStateAt(CellState.SNAKE_BODY, snakeLocation[i]);
+        }
 
         generateCherryCords();
         setCellStateAt(CellState.CHERRY, cherry);
@@ -57,38 +60,47 @@ public class Field implements PropertyChangeListener {
     }
 
     private void generateCherryCords() {
-        Collection<Cords> snakeLocation = snake.getLocation();
-        Cords cords;
-        do {
+        Cords[] snakeLocation = snake.getLocation();
+        boolean occupied = true;
+        Cords newCords = null;
+
+        while (occupied) {
             int x = (int) (Math.random() * getGridLength());
             int y = (int) (Math.random() * getGridLength());
-            cords = new Cords(x, y);
-        } while (snakeLocation.contains(cords));
+            newCords = new Cords(x, y);
 
-        cherry = cords;
+            occupied = false;
+            for (Cords snakeCords : snakeLocation) {
+                if (snakeCords.equals(newCords)) {
+                    occupied = true;
+                    break;
+                }
+            }
+        }
+
+        cherry = newCords;
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "location":
-                List<Cords> newLocations = (List<Cords>) evt.getNewValue();
-                List<Cords> oldLocations = (List<Cords>) evt.getOldValue();
+                Cords[] newLocation = (Cords[]) evt.getNewValue();
+                Cords[] oldLocation = (Cords[]) evt.getOldValue();
 
-                Cords newHeadCords = newLocations.get(0);
-                if (!isCordsBelong(newHeadCords)) {
-                    snake.setLocation(oldLocations);
+                if (!isCordsBelong(newLocation[0])) {
+                    snake.setLocation(oldLocation);
                     snake.die();
                 } else {
-                    setCellStateAt(CellState.SNAKE, newHeadCords);
+                    setCellStateAt(CellState.SNAKE_HEAD, newLocation[0]);
+                    setCellStateAt(CellState.SNAKE_BODY, oldLocation[0]);
 
-                    if (cherry.equals(newHeadCords)) {
+                    if (cherry.equals(newLocation[0])) {
                         snake.grow();
                         generateCherryCords();
                         setCellStateAt(CellState.CHERRY, cherry);
                     } else {
-                        Cords oldTailCords = oldLocations.get(oldLocations.size() - 1);
-                        setCellStateAt(CellState.EMPTY, oldTailCords);
+                        setCellStateAt(CellState.EMPTY, oldLocation[oldLocation.length - 1]);
                     }
                 }
                 break;
@@ -99,33 +111,11 @@ public class Field implements PropertyChangeListener {
                 if (newTailCords == null) {
                     setCellStateAt(CellState.EMPTY, oldTailCords);
                 } else if (oldTailCords == null) {
-                    setCellStateAt(CellState.SNAKE, newTailCords);
+                    setCellStateAt(CellState.SNAKE_BODY, newTailCords);
                 }
 
                 break;
         }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder strb = new StringBuilder();
-        for (int y = 0; y < getGridLength(); y++) {
-            for (int x = 0; x < getGridLength(); x++) {
-                switch (grid[y][x]) {
-                    case SNAKE:
-                        strb.append(" @ ");
-                        break;
-                    case CHERRY:
-                        strb.append(" * ");
-                        break;
-                    case EMPTY:
-                        strb.append(" . ");
-                        break;
-                }
-            }
-            strb.append("\n");
-        }
-        return strb.toString();
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

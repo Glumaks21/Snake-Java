@@ -59,7 +59,10 @@ public class FieldPanel extends JPanel implements PropertyChangeListener {
                 case CHERRY:
                     setBackground(Color.RED);
                     break;
-                case SNAKE:
+                case SNAKE_HEAD:
+                    setBackground(Color.ORANGE);
+                    break;
+                case SNAKE_BODY:
                     setBackground(Color.GREEN);
                     break;
             }

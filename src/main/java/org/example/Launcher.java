@@ -20,6 +20,5 @@ public class Launcher {
         frame.addKeyListener(new GameSessionController(gameSession));
 
         frame.setVisible(true);
-        gameSession.start();
     }
 }

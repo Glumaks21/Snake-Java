@@ -24,6 +24,8 @@ public class GameSession implements PropertyChangeListener {
 
         this.snake = snake;
         snake.addPropertyChangeListener(this);
+
+        state = State.PAUSED;
     }
 
     public State getState() {
@@ -38,14 +40,15 @@ public class GameSession implements PropertyChangeListener {
         state = State.RUNNING;
         support.firePropertyChange("state", null, State.RUNNING);
 
+
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
-            if (state == State.FINISHED || state == State.PAUSED) {
+            if (state != State.FINISHED && state != State.PAUSED) {
+                snake.move();
+            } else {
                 service.shutdown();
             }
-
-            snake.move();
-        }, 1000, 300, TimeUnit.MILLISECONDS);
+        }, 0, 300, TimeUnit.MILLISECONDS);
     }
 
     public void pause() {

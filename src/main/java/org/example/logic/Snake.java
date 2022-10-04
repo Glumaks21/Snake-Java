@@ -3,6 +3,7 @@ package org.example.logic;
 import java.beans.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 
 public class Snake {
@@ -25,6 +26,7 @@ public class Snake {
     private Deque<Cords> location;
     private Direction direction;
     private Cords tailTrace;
+    private boolean canTurn;
 
     public Snake() {
         support = new PropertyChangeSupport(this);
@@ -38,17 +40,19 @@ public class Snake {
     }
 
     public void setDirection(Direction newDirection) {
-        if (Math.abs(newDirection.getDegree() - direction.getDegree()) % 180  == 90) {
+        if (canTurn && Math.abs(newDirection.getDegree() - direction.getDegree()) % 180  == 90) {
             direction = newDirection;
+            canTurn = false;
         }
     }
 
-    public List<Cords> getLocation() {
-        return new ArrayList<>(location);
+    public Cords[] getLocation() {
+        return location.toArray(new Cords[0]);
     }
 
-    void setLocation(List<Cords> location) {
-        this.location = new LinkedList<>(location);
+    void setLocation(Cords[] location) {
+        this.location = Arrays.stream(location).
+                collect(Collectors.toCollection(LinkedList::new));
     }
 
     public void move() {
@@ -71,10 +75,11 @@ public class Snake {
         if (location.contains(headCords)) {
             die();
         } else {
-            List<Cords> locationBefore = getLocation();
+            canTurn = true;
+            Cords[] locationBefore = getLocation();
             location.addFirst(headCords);
             tailTrace = location.removeLast();
-            List<Cords> locationAfter = getLocation();
+            Cords[] locationAfter = getLocation();
             support.firePropertyChange("location",
                     locationBefore, locationAfter);
         }
@@ -94,14 +99,13 @@ public class Snake {
 
         ScheduledExecutorService service = Executors.newScheduledThreadPool(1);
         service.scheduleAtFixedRate(() -> {
-            if (location.isEmpty()) {
-                service.shutdown();
-            }
-
-            Cords oldTailLocation = location.removeLast();
-            support.firePropertyChange("size",
-                    oldTailLocation, null);
-        }, 600, 200, TimeUnit.MILLISECONDS);
+                if (!location.isEmpty()) {
+                    support.firePropertyChange("size",
+                            location.removeLast(), null);
+                } else {
+                    service.shutdown();
+                }
+        } , 600, 200, TimeUnit.MILLISECONDS);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {

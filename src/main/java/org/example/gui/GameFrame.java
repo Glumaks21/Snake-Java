@@ -10,7 +10,6 @@ import java.beans.PropertyChangeListener;
 import java.util.Objects;
 
 public class GameFrame extends JFrame implements PropertyChangeListener {
-    private final GameSession gameSession;
     private final ScorePanel scorePanel;
     private final FieldPanel fieldPanel;
 
@@ -18,7 +17,6 @@ public class GameFrame extends JFrame implements PropertyChangeListener {
         Objects.requireNonNull(gameSession, "game session is null");
         Objects.requireNonNull(field, "field is null");
 
-        this.gameSession = gameSession;
         gameSession.addPropertyChangeListener(this);
         scorePanel = new ScorePanel(gameSession);
         fieldPanel = new FieldPanel(field);
